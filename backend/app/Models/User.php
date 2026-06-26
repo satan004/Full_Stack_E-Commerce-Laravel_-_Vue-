@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'address',
+        'avatar_path',
         'is_admin',
     ];
 
@@ -57,6 +58,19 @@ class User extends Authenticatable
     public function wishlistItems(): HasMany
     {
         return $this->hasMany(WishlistItem::class);
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        if (str_starts_with((string) $this->avatar_path, 'http')) {
+            return $this->avatar_path;
+        }
+
+        return asset('storage/' . $this->avatar_path);
     }
 
     /**

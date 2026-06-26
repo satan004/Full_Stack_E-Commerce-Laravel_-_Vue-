@@ -96,14 +96,14 @@ class EcommerceFlowTest extends TestCase
     {
         $admin = User::create([
             'name' => 'Admin Manager',
-            'email' => 'admin@example.com',
-            'password' => 'password',
+            'email' => 'admin@gmail.com',
+            'password' => '1234567',
             'is_admin' => true,
         ]);
 
         $this->post('/admin/login', [
-            'email' => 'admin@example.com',
-            'password' => 'password',
+            'email' => 'admin@gmail.com',
+            'password' => '1234567',
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin);

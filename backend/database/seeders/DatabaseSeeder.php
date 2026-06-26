@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -17,11 +18,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        Setting::putMany(Setting::defaults());
+
         User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'admin@gmail.com'],
             [
                 'name' => 'Admin Manager',
-                'password' => 'password',
+                'password' => '1234567',
                 'is_admin' => true,
             ],
         );
