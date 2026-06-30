@@ -63,6 +63,29 @@
             </tbody>
         </table>
 
-        <div style="margin-top: 1rem;">{{ $orders->links() }}</div>
+        @if($orders->hasPages())
+            <div style="margin-top: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div style="font-size: 0.875rem; color: var(--muted); font-weight: 600;">
+                    Showing {{ $orders->firstItem() ?? 0 }} to {{ $orders->lastItem() ?? 0 }} of {{ $orders->total() }} results
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    @if($orders->onFirstPage())
+                        <span class="btn btn-muted" style="opacity: 0.5; cursor: not-allowed;">« Previous</span>
+                    @else
+                        <a href="{{ $orders->previousPageUrl() }}" class="btn btn-muted">« Previous</a>
+                    @endif
+                    
+                    <span style="padding: 0 0.75rem; font-size: 0.875rem; font-weight: 600; color: var(--ink);">
+                        Page {{ $orders->currentPage() }} of {{ $orders->lastPage() }}
+                    </span>
+                    
+                    @if($orders->hasMorePages())
+                        <a href="{{ $orders->nextPageUrl() }}" class="btn btn-muted">Next »</a>
+                    @else
+                        <span class="btn btn-muted" style="opacity: 0.5; cursor: not-allowed;">Next »</span>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 @endsection

@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -9,7 +10,24 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\GoogleAuthController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+
+Route::get('/storage/{path}', function (string $path) {
+    abort_if($path === '' || str_contains($path, '..') || str_starts_with($path, '/') || str_starts_with($path, '\\'), 404);
+
+    $disk = Storage::disk('public');
+
+    abort_unless($disk->exists($path), 404);
+
+    return response()->file($disk->path($path), [
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->where('path', '.*')->name('storage.public');
+
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 Route::get('/', function () {
     if (auth()->check() && auth()->user()->is_admin) {
@@ -32,6 +50,9 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('admin')->group(function (): void {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/analytics/order-status', [DashboardController::class, 'orderStatus'])->name('analytics.order-status');
+        Route::get('/analytics/products-by-category', [DashboardController::class, 'productsByCategory'])->name('analytics.products-by-category');
+        Route::get('/analytics/revenue-by-category', [DashboardController::class, 'revenueByCategory'])->name('analytics.revenue-by-category');
         Route::resource('categories', AdminCategoryController::class)->except('show');
         Route::resource('products', AdminProductController::class)->except('show');
         Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');

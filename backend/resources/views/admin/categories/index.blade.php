@@ -42,11 +42,7 @@
                         <td style="text-align: right;"><span class="badge">{{ $category->products_count }}</span></td>
                         <td class="actions">
                             <a class="btn btn-muted" href="{{ route('admin.categories.edit', $category) }}">Edit</a>
-                            <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" onsubmit="return confirm('Delete this category?');">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger" type="submit">Delete</button>
-                            </form>
+                            <button class="btn btn-danger" type="button" onclick="openDeleteModal('{{ $category->name }}', '{{ route('admin.categories.destroy', $category) }}')">Delete</button>
                         </td>
                     </tr>
                 @empty
@@ -57,4 +53,64 @@
 
         <div style="margin-top: 1rem;">{{ $categories->links() }}</div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Category</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="modalCategoryName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-muted" onclick="closeDeleteModal()">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn btn-danger" type="submit">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
+
+
+@push('scripts')
+    <script>
+        let currentDeleteUrl = null;
+
+        function openDeleteModal(categoryName, deleteUrl) {
+            currentDeleteUrl = deleteUrl;
+            document.getElementById('modalCategoryName').textContent = categoryName;
+            document.getElementById('deleteForm').action = deleteUrl;
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentDeleteUrl = null;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('deleteModal');
+                if (modal.style.display === 'flex') {
+                    closeDeleteModal();
+                }
+            }
+        });
+    </script>
+@endpush
+

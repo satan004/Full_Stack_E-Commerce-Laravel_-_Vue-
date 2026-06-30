@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Users')
+@section('title', 'Customers')
 
 @section('content')
     <div class="admin-page-header">
         <div>
             <p class="eyebrow">Customers</p>
-            <h1>Users</h1>
+            <h1>Customers</h1>
             <p>{{ $users->total() }} registered customer{{ $users->total() === 1 ? '' : 's' }} — browse customers who have an account in your store.</p>
         </div>
     </div>
@@ -34,7 +34,7 @@
                     <tr>
                         <td>
                             <div class="product-cell">
-                                <span class="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #22d3ee); color: #fff; display: grid; place-items: center; font-weight: 700;">
+                                <span class="avatar" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-600)); color: #fff; display: grid; place-items: center; font-weight: 700;">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </span>
                                 <strong class="name">{{ $user->name }}</strong>
@@ -54,3 +54,4 @@
         <div style="margin-top: 1rem;">{{ $users->links() }}</div>
     </div>
 @endsection
+

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -29,9 +30,13 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
-        Product::create($this->validatedProductData($request));
+        $product = Product::create($this->validatedProductData($request));
+
+        if ($request->expectsJson()) {
+            return response()->json($product->load('category'), 201);
+        }
 
         return redirect()->route('admin.products.index')->with('status', 'Product created.');
     }
@@ -44,9 +49,13 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $product->update($this->validatedProductData($request, $product));
+
+        if ($request->expectsJson()) {
+            return response()->json($product->fresh()->load('category'));
+        }
 
         return redirect()->route('admin.products.index')->with('status', 'Product updated.');
     }
@@ -67,7 +76,7 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'image_url' => ['nullable', 'url', 'max:1000'],
         ]);
 
@@ -81,7 +90,12 @@ class ProductController extends Controller
             }
 
             $data['image_path'] = $request->file('image')->store('products', 'public');
+            $this->mirrorPublicImage($data['image_path']);
         } elseif ($request->filled('image_url')) {
+            if ($product) {
+                $this->deleteLocalImage($product);
+            }
+
             $data['image_path'] = $request->input('image_url');
         } elseif (! $product) {
             $data['image_path'] = null;
@@ -92,8 +106,63 @@ class ProductController extends Controller
 
     private function deleteLocalImage(Product $product): void
     {
-        if ($product->image_path && ! str_starts_with($product->image_path, 'http')) {
+        if ($this->isLocalImagePath($product->image_path)) {
             Storage::disk('public')->delete($product->image_path);
+            $this->deletePublicMirror($product->image_path);
+        }
+    }
+
+    private function isLocalImagePath(?string $path): bool
+    {
+        return filled($path)
+            && ! str_starts_with($path, 'http')
+            && ! str_starts_with($path, 'data:');
+    }
+
+    private function mirrorPublicImage(string $path): void
+    {
+        $publicStoragePath = public_path('storage');
+
+        if (is_link($publicStoragePath)) {
+            return;
+        }
+
+        $source = Storage::disk('public')->path($path);
+
+        if (! is_file($source)) {
+            return;
+        }
+
+        $target = $publicStoragePath.DIRECTORY_SEPARATOR.str_replace(
+            ['/', '\\'],
+            DIRECTORY_SEPARATOR,
+            ltrim($path, '/\\'),
+        );
+        $targetDirectory = dirname($target);
+
+        if (! is_dir($targetDirectory)) {
+            mkdir($targetDirectory, 0755, true);
+        }
+
+        copy($source, $target);
+    }
+
+    private function deletePublicMirror(string $path): void
+    {
+        $publicStoragePath = public_path('storage');
+
+        if (is_link($publicStoragePath)) {
+            return;
+        }
+
+        $target = $publicStoragePath.DIRECTORY_SEPARATOR.str_replace(
+            ['/', '\\'],
+            DIRECTORY_SEPARATOR,
+            ltrim($path, '/\\'),
+        );
+
+        if (is_file($target)) {
+            unlink($target);
         }
     }
 

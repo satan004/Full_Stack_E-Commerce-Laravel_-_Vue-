@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class Setting extends Model
 {
@@ -26,11 +27,21 @@ class Setting extends Model
 
     public static function allCached(): array
     {
-        return Cache::rememberForever('site_settings', function (): array {
-            $stored = static::pluck('value', 'key')->toArray();
+        try {
+            return Cache::rememberForever('site_settings', function (): array {
+                $stored = static::pluck('value', 'key')->toArray();
 
-            return array_merge(static::defaults(), $stored);
-        });
+                return array_merge(static::defaults(), $stored);
+            });
+        } catch (Throwable) {
+            try {
+                $stored = static::pluck('value', 'key')->toArray();
+
+                return array_merge(static::defaults(), $stored);
+            } catch (Throwable) {
+                return static::defaults();
+            }
+        }
     }
 
     public static function get(string $key, mixed $fallback = null): mixed

@@ -28,7 +28,7 @@
                 @if ($user->avatar_url)
                     <img src="{{ $user->avatar_url }}" alt="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: var(--shadow-sm);">
                 @else
-                    <span style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #22d3ee); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.8rem;">
+                    <span style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-600)); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.8rem;">
                         {{ strtoupper(substr($user->name, 0, 1)) }}
                     </span>
                 @endif
@@ -108,3 +108,4 @@
         </form>
     </div>
 @endsection
+

@@ -5,14 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ApiToken;
 use App\Models\User;
+use App\Support\IssuesApiTokens;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    use IssuesApiTokens;
+
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -69,16 +71,4 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully.']);
     }
 
-    private function issueToken(User $user): string
-    {
-        $plainToken = Str::random(48);
-
-        $user->apiTokens()->create([
-            'name' => 'customer',
-            'token' => hash('sha256', $plainToken),
-            'expires_at' => now()->addDays(30),
-        ]);
-
-        return $plainToken;
-    }
 }

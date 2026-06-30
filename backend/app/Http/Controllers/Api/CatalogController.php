@@ -62,16 +62,20 @@ class CatalogController extends Controller
         return response()->json($products);
     }
 
-    public function show(Product $product): JsonResponse
+    public function show(Request $request, string $product): JsonResponse
     {
-        abort_if(! $product->is_active, 404);
+        $productModel = Product::query()
+            ->active()
+            ->with([
+                'category',
+                'reviews' => fn ($query) => $query->with('user:id,name')->latest(),
+            ])
+            ->where(is_numeric($product) ? 'id' : 'slug', $product)
+            ->firstOrFail();
 
-        $product->load([
-            'category',
-            'reviews' => fn ($query) => $query->with('user:id,name')->latest(),
-        ])->loadCount('reviews')
+        $productModel->loadCount('reviews')
             ->loadAvg('reviews', 'rating');
 
-        return response()->json($product);
+        return response()->json($productModel);
     }
 }

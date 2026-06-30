@@ -538,7 +538,10 @@
                         this.status = 'Review saved.';
                     },
                     price(value) {
-                        return Number(value || 0).toFixed(2);
+                        return new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                        }).format(Number(value || 0));
                     },
                     ratingLabel(product) {
                         const rating = product.reviews_avg_rating;

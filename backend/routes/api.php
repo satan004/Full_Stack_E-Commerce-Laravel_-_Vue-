@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/categories', [CatalogController::class, 'categories']);
@@ -21,6 +22,7 @@ Route::middleware('token.auth')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/profile', [ProfileController::class, 'show']);
+    Route::post('/profile', [ProfileController::class, 'update']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/password', [ProfileController::class, 'password']);
 
@@ -39,4 +41,9 @@ Route::middleware('token.auth')->group(function (): void {
     Route::get('/orders/{order}', [OrderController::class, 'show']);
 
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store']);
+
+    Route::middleware('can:manage-products')->prefix('admin')->group(function (): void {
+        Route::post('/products', [AdminProductController::class, 'store']);
+        Route::put('/products/{product}', [AdminProductController::class, 'update']);
+    });
 });
